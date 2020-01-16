@@ -1,9 +1,14 @@
 <?php
 
-class xkomper13
+class elgamal
 {
 
-    function is_prime($number)
+    var $x;
+    var $p;
+    var $g;
+    var $y;
+    var $text;
+    function isPrime($number)
     {
         // 1 is not prime
         if ($number == 1) {
@@ -29,10 +34,14 @@ class xkomper13
         }
     }
 
-    function getKunciPublic()
+    function getKey()
     {
         //todo mendapatkan kunci publik
-        return  bcpowmod($this->g,$this->x,$this->p); 
+        if (!$this->isPrime($this->p)) {
+            echo "[+] Pastikan kolom bilangan prima adalah bilangan prima\n";
+            exit("keluar");
+        }
+        return  bcpowmod($this->g, $this->x, $this->p);
     }
 
     function pecahString()
@@ -47,78 +56,38 @@ class xkomper13
         }
         return $ascii;
     }
-    function cipher()
+    function encrypt()
     {
-        //menggabungkan 2 rumus menjadi 1
+        //menggabungkan delta dan gamma menjadi array setiap m
         foreach ($this->getAscii() as $m) {
             $k = $this->getK($m);
-            // $gamma = ;
-            // $delta = new BigInteger();
-            // $gamma = pow($this->g,$k) %$this->p;
-            $gamma = bcpowmod($this->g,$k, $this->p);
-            $delta = bcmod(bcmul(bcpow($this->getKunciPublic(),$k) ,$m), $this->p);
-            $gabungperhuruf[] = $gamma . ',' . $delta;
+            $cipher[] = bcpowmod($this->g, $k, $this->p); //gamma
+            $cipher[] = bcmod(bcmul(bcpow($this->getKey(), $k), $m), $this->p); //delta
         }
-        //gabung semua huruf
-        $gabung1 = implode(',', $gabungperhuruf);
-        return $gabung1;
+        return $cipher;
     }
 
-    function plaintext($string,$x)
+    function decrypt()
     {
-        $semua = explode(',', $string);
-        for($i=0; $i<=(count($semua)-1); $i++){
-            if($i % 2 != 0){
-                $delta[] = $semua[$i]; //indeks ganjil
+        $cipher = $this->cipher;
+        for ($i = 0; $i < count($cipher); $i++) {
+            if ($i % 2 != 0) {
+                $delta[] = $cipher[$i]; //indeks ganjil
             } else {
-                $gamma[] = $semua[$i]; // indeks genap
+                $gamma[] = $cipher[$i]; // indeks genap
             }
         }
         $pangkat = $this->p - 1 - $this->x;
-        for($i=0; $i<count($gamma); $i++){
+        for ($i = 0; $i < count($gamma); $i++) {
 
-            $xxxx[] = chr(bcmod(bcmul($delta[$i],bcpow($gamma[$i],$pangkat)),$this->p));
+            $xxxx[] = chr(bcmod(bcmul($delta[$i], bcpow($gamma[$i], $pangkat)), $this->p));
         }
-        
-        return implode('',$xxxx);
+
+        return implode('', $xxxx);
     }
     function getK()
     {
-        return rand(1, ($this->p - 1)); //random number
-    }
-    function tod()
-    {
-        if (!$this->is_prime($this->p)) {
-            echo "[+] Pastikan kolom bilangan prima adalah bilangan prima\n";
-            exit("keluar");
-        }
-
-        print "[+] mendapatkan kunci publik -->";
-        print $this->getKunciPublic();
-        print "\n";
-
-        print '[+] memecah string --->';
-        print(implode(',',$this->pecahString()));
-        print "\n";
-
-        print "[+] mendapatkan ascii --->";
-        print(implode(',',$this->getAscii()));
-        print "\n";
-        $cipher = $this->cipher();
-        print '[+] mendapatkan cipher text --->' . $cipher;
-        print "\n";
-        print "[+] mengubah cipher ke teks-->";
-        print_r($this->plaintext($cipher,$this->x));
-        print "\n";
+        return rand(1, ($this->p - 2)); //random number
     }
 }
 
-
-$elgamal = new xkomper13();
-// =========================== setting input ================= //
-$elgamal->p = 293; //bilangan prima lebih dari 255 //privat
-$elgamal->g = 20; //bilangan bulat harus kurang dari p
-$elgamal->x = 290; //random number //privat
-$elgamal->text = 'feri ganteng sekali'; //plain text
-// =========================== setting input ================= //
-$elgamal->tod();
