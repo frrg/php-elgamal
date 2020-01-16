@@ -3,8 +3,11 @@ elgamal encryption in php
 
 
 text    = text that you want to encrypt.
+
 p       = prime number > 255 . as private key
+
 g       = random number,   0 < g < p
+
 x       = random number, 0 < x < p . as private key
 
 USAGE
